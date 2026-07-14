@@ -688,13 +688,19 @@
             // --- AQUI ACONTECE A MÁGICA DE CAPTAÇÃO ---
             // Numa implementação real, envie estes dados via Fetch para o seu FormSubmit, Zapier, Make, etc.
             
-            fetch("https://formsubmit.co/ajax/juhcosta23@gmail.com", {
+            fetch("https://api.web3forms.com/submit", {
                 method: "POST",
                 headers: { 
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ Nome: name, Email: email, Empresa: company, Setor: sector })
+                body: JSON.stringify({ 
+                    access_key: "91ed69fb-f180-4da3-a768-02f08b53cf60",
+                    Nome: name, 
+                    Email: email, 
+                    Empresa: company, 
+                    Setor: sector 
+                })
             });
             
 
