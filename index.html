@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="pt-PT" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOME | Diagnóstico Forense de Marca</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    },
+                    fontSize: {
+                        'xs': ['13px', '18px'],
+                        'sm': ['15px', '22px'],
+                        'base': ['17px', '26px'],
+                    },
+                    colors: {
+                        brand: {
+                            black: '#09090b',
+                            zinc: '#141417',
+                            card: '#1c1c21',
+                            border: '#2e2e38',
+                            amber: '#f59e0b',
+                            gold: '#d97706',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            ai: '#a855f7'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        h1, h2, h3, h4, .font-display {
+            font-family: 'Montserrat', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .dark ::-webkit-scrollbar-thumb { background: #2e2e38; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+        ::-webkit-scrollbar-thumb:hover { background: #d97706; }
+        
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #d97706; color: #000;
+            text-align: center; border-radius: 12px; padding: 16px; position: fixed;
+            z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%);
+            font-weight: 800; text-transform: uppercase; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        
+        /* Ocultar a seta padrão do details no Webkit */
+        details > summary::-webkit-details-marker { display: none; }
+        
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        
+        /* Efeito Shimmer IA */
+        .ai-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.2), transparent);
+            background-size: 200% 100%; animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        /* Print Styles */
+        @media print {
+            body { background: white !important; color: black !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .print-card { background: white !important; border: 1px solid #e4e4e7 !important; color: black !important; box-shadow: none !important; }
+            .print-serif { font-family: 'Playfair Display', Georgia, serif !important; }
+            .print-text-dark { color: #18181b !important; }
+            .print-text-muted { color: #71717a !important; }
+            .print-border-grey { border-color: #e4e4e7 !important; }
+            #leadGate { display: none !important; }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased bg-zinc-50 dark:bg-brand-black text-zinc-900 dark:text-zinc-100 overflow-hidden" id="mainBody">
+
+    <div id="toast">Operação realizada com sucesso!</div>
+
+    <!-- LEAD GATE (ECRÃ DE CADASTRO OBRIGATÓRIO) -->
+    <div id="leadGate" class="fixed inset-0 z-[200] bg-brand-zinc flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div class="relative w-full max-w-5xl flex flex-col lg:flex-row bg-brand-black border border-brand-border rounded-[2rem] overflow-hidden shadow-2xl min-h-[600px]">
+            
+            <!-- Coluna de Texto / Copy de Vendas -->
+            <div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-gradient-to-br from-brand-zinc to-brand-black border-r border-brand-border">
+                <div class="h-12 w-12 rounded-lg bg-gradient-to-tr from-brand-gold to-brand-amber flex items-center justify-center shadow-lg shadow-brand-gold/20 mb-8">
+                    <span class="text-brand-black font-display font-extrabold text-2xl leading-none">F</span>
+                </div>
+                <h2 class="text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter font-display mb-4 leading-tight">
+                    Descubra quanto dinheiro a sua marca está a <span class="text-brand-rose underline decoration-brand-rose underline-offset-4">queimar</span> agora.
+                </h2>
+                <p class="text-sm text-zinc-400 font-sans leading-relaxed mb-8">
+                    Falhas operacionais, discursos desalinhados e atritos de checkout destroem o património da sua empresa todos os dias. Preencha os dados e aceda à nossa <strong>Calculadora Forense de Coerência Sistémica (ICS)</strong> para auditar a sua operação em tempo real.
+                </p>
+                
+                <div class="space-y-4 font-sans text-xs">
+                    <div class="flex items-center gap-3 text-zinc-300">
+                        <svg class="w-5 h-5 text-brand-emerald shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Calcule o Vazamento Operacional exato (em R$/€).</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-zinc-300">
+                        <svg class="w-5 h-5 text-brand-emerald shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Descubra a sua Incompatibilidade de CAC.</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-zinc-300">
+                        <svg class="w-5 h-5 text-brand-emerald shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Receba um Parecer Clínico Gerado por IA.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna do Formulário -->
+            <div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center bg-white dark:bg-brand-black">
+                <h3 class="text-xl font-bold text-zinc-900 dark:text-white font-display mb-6 uppercase tracking-tight">Iniciar Auditoria Gratuita</h3>
+                
+                <!-- IMPORTANTE: Substitua o atributo action="" pelo URL do seu FormSubmit, Zapier Webhook, Make.com, etc. -->
+                <form id="leadForm" onsubmit="startAudit(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase tracking-wider">Seu Nome</label>
+                            <input type="text" id="leadName" required class="w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-zinc-900 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="João Silva">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase tracking-wider">Email Profissional</label>
+                            <input type="email" id="leadEmail" required class="w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-zinc-900 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="joao@empresa.com">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase tracking-wider">Nome da Empresa</label>
+                        <input type="text" id="leadCompany" required class="w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-zinc-900 py-3 px-4 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="Ex: Tech Corp Solutions">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase tracking-wider">Qual o Modelo de Negócio da Empresa?</label>
+                        <select id="leadSector" required class="w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-zinc-900 py-3 px-4 text-sm font-bold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none cursor-pointer">
+                            <option value="PHYGITAL">Phygital (Lojas Físicas + Vendas Digitais)</option>
+                            <option value="PURE DIGITAL">Pure Digital (E-commerce / SaaS / App)</option>
+                            <option value="INDUSTRIAL">Industrial / Fabrico / B2B Complexo</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full bg-brand-gold hover:bg-brand-amber text-brand-black font-black uppercase tracking-widest text-sm py-4 rounded-xl transition-all shadow-xl shadow-brand-gold/20 flex items-center justify-center gap-2">
+                            Aceder à Calculadora
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </button>
+                    </div>
+                    <p class="text-[9px] text-center text-zinc-500 mt-4 leading-relaxed">Ao prosseguir, concorda que a Agência FOME (ou Parceira) o possa contactar para discutir os resultados do seu diagnóstico.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <header class="no-print bg-white dark:bg-brand-zinc border-b border-zinc-200 dark:border-brand-border px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-50 shadow-sm blur-filter">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gradient-to-tr from-brand-gold to-brand-amber flex items-center justify-center shadow-lg shadow-brand-gold/20">
+                <span class="text-brand-black font-display font-extrabold text-xl leading-none">F</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
+                    FOME <span class="text-xs bg-zinc-100 dark:bg-brand-border text-brand-gold dark:text-brand-amber px-2 py-0.5 rounded border border-zinc-200 dark:border-brand-border font-sans font-medium">AUDITORIA + AI</span>
+                </h1>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">Diagnóstico Forense de Marca & Calculadora de Coerência (ICS)</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Exibição Estática da Empresa do Utilizador (Removido o Seletor de Múltiplos Clientes) -->
+            <div class="flex items-center gap-2 bg-zinc-100 dark:bg-brand-black px-4 py-2 rounded-lg border border-zinc-200 dark:border-brand-border">
+                <span class="text-xs text-zinc-500 dark:text-zinc-400 font-medium font-sans">A auditar:</span>
+                <span id="displayUserCompany" class="text-sm text-brand-gold dark:text-brand-amber font-bold font-sans uppercase tracking-tight">Sua Empresa</span>
+            </div>
+
+            <button onclick="toggleTheme()" class="p-2.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-brand-amber dark:hover:text-brand-amber border border-zinc-200 dark:border-brand-border transition-all" title="Alternar Tema">
+                <svg id="themeIconSun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.58 1.58m12.42 12.42l1.58 1.58M3 12h2.25m13.5 0H21m-1.5-7.78l-1.58 1.58m-12 12l-1.01 1.01M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"></path></svg>
+                <svg id="themeIconMoon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 12.83A9.53 9.53 0 0112 2.25c-5.25 0-9.5 4.25-9.5 9.5s4.25 9.5 9.5 9.5a9.47 9.47 0 007.75-4.78 9.83 9.83 0 01-1-.05z"></path></svg>
+            </button>
+
+            <button onclick="window.print()" class="bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-800 dark:text-white font-semibold text-xs px-3.5 py-2.5 rounded-lg flex items-center gap-1.5 transition-all border border-zinc-300 dark:border-brand-border font-sans shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                Exportar PDF
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col lg:flex-row min-h-0 blur-filter">
+        
+        <aside class="no-print w-full lg:w-[460px] bg-zinc-100 dark:bg-brand-zinc border-r border-zinc-200 dark:border-brand-border p-8 overflow-y-auto flex flex-col gap-8 shrink-0">
+            <!-- SELETOR DE MODO DE EXPOSIÇÃO -->
+            <div class="bg-brand-amber/10 border border-brand-amber/30 rounded-2xl p-4 shadow-sm">
+                <label class="block text-[11px] font-bold text-brand-gold dark:text-brand-amber uppercase tracking-widest mb-2 font-display">Visão de Análise do Relatório</label>
+                <select id="selectPresentationMode" onchange="changePresentationMode(this.value)" class="w-full bg-white dark:bg-brand-black border border-zinc-300 dark:border-brand-border rounded-xl py-3 px-4 text-xs text-zinc-900 dark:text-white focus:outline-none font-bold cursor-pointer font-sans">
+                    <option value="FINANCEIRO">Modo de Impacto (Prejuízo Financeiro)</option>
+                    <option value="ESTATEGICO">Modo Construtivo (Apenas Percentagens)</option>
+                </select>
+                <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-2 leading-relaxed font-sans">
+                    Alterne o modo para ver as suas perdas em dinheiro cru ou em percentagens (ideal caso queira partilhar o relatório com a sua equipa sem expor dados fiscais).
+                </p>
+            </div>
+
+            <!-- PARÂMETROS FINANCEIROS COM HELPERS DIDÁTICOS -->
+            <section class="space-y-4 bg-white dark:bg-brand-black/30 border border-zinc-200 dark:border-brand-border/40 p-5 rounded-2xl">
+                <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-800 pb-2 flex items-center justify-between font-display">
+                    <span>1. O Seu Cenário Base</span>
+                    <svg class="w-4 h-4 text-zinc-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </h3>
+                <div class="flex flex-col gap-5 font-sans">
+                    
+                    <!-- Faturamento Anual -->
+                    <div>
+                        <label class="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase">Faturação Anual (Bruta)</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <span class="text-zinc-500 text-xs" id="currencySymbol">R$</span>
+                            </div>
+                            <input type="number" id="inputFaturamento" oninput="updateSessionData()" class="block w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black py-3 pl-10 pr-3 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="0">
+                        </div>
+                        <details class="mt-2 group cursor-pointer outline-none">
+                            <summary class="list-none text-[9px] text-brand-gold hover:text-brand-amber font-bold uppercase tracking-wider flex items-center gap-1">
+                                <svg class="w-3 h-3 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                                O que é isto?
+                            </summary>
+                            <div class="mt-2 p-3 bg-zinc-100 dark:bg-brand-zinc/50 rounded-lg text-[10px] leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium space-y-1.5 border border-zinc-200 dark:border-brand-border/40">
+                                <p><strong class="text-zinc-800 dark:text-zinc-200">Definição:</strong> A receita bruta total gerada pela sua empresa no último ano.</p>
+                                <p><strong class="text-zinc-800 dark:text-zinc-200">Porquê usamos:</strong> Serve de base de cálculo para encontrarmos o seu "Vazamento Operacional" (dinheiro perdido por atrito nos processos de compra).</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Gasto Marketing / CAC -->
+                    <div>
+                        <label class="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase">Orçamento Anual em Marketing</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <span class="text-zinc-500 text-xs">R$</span>
+                            </div>
+                            <input type="number" id="inputCAC" oninput="updateSessionData()" class="block w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black py-3 pl-10 pr-3 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="0">
+                        </div>
+                        <details class="mt-2 group cursor-pointer outline-none">
+                            <summary class="list-none text-[9px] text-brand-gold hover:text-brand-amber font-bold uppercase tracking-wider flex items-center gap-1">
+                                <svg class="w-3 h-3 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7-7-7-7"></path></svg>
+                                O que engloba?
+                            </summary>
+                            <div class="mt-2 p-3 bg-zinc-100 dark:bg-brand-zinc/50 rounded-lg text-[10px] leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium space-y-1.5 border border-zinc-200 dark:border-brand-border/40">
+                                <p><strong class="text-zinc-800 dark:text-zinc-200">Como calcular:</strong> Some todo o investimento feito em Ads (Google, Meta, etc) + despesas com Agências ou Equipa de Marketing interna num ano.</p>
+                                <p><strong class="text-zinc-800 dark:text-zinc-200">Porquê usamos:</strong> Quantifica o orçamento "queimado" sempre que um lead clica num anúncio perfeito, mas foge ao ver um site ou atendimento amador.</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- LTV e Churn -->
+                    <div class="border-t border-zinc-200 dark:border-zinc-800/80 pt-4 flex flex-col gap-5">
+                        <div>
+                            <label class="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase">LTV (Valor Vitalício do Cliente)</label>
+                            <div class="relative rounded-lg shadow-sm">
+                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                    <span class="text-zinc-500 text-xs">R$</span>
+                                </div>
+                                <input type="number" id="inputLTV" oninput="updateSessionData()" class="block w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black py-3 pl-10 px-4 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="0">
+                            </div>
+                            <details class="mt-2 group cursor-pointer outline-none">
+                                <summary class="list-none text-[9px] text-brand-gold hover:text-brand-amber font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <svg class="w-3 h-3 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7-7-7-7"></path></svg>
+                                    Como calculo o meu LTV?
+                                </summary>
+                                <div class="mt-2 p-3 bg-zinc-100 dark:bg-brand-zinc/50 rounded-lg text-[10px] leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium space-y-1.5 border border-zinc-200 dark:border-brand-border/40">
+                                    <p><strong class="text-zinc-800 dark:text-zinc-200">Definição:</strong> É o total de dinheiro que um único cliente deixa na sua empresa durante todo o tempo em que se mantém fiel.</p>
+                                    <p><strong class="text-zinc-800 dark:text-zinc-200">Exemplo Prático:</strong> Se um cliente gasta R$ 500 por mês consigo e fica em média 2 anos (24 meses), o LTV dele é R$ 12.000.</p>
+                                </div>
+                            </details>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] text-zinc-500 dark:text-zinc-400 mb-1 font-bold uppercase">Churn Anual (Taxa de Abandono)</label>
+                            <div class="relative rounded-lg shadow-sm">
+                                <input type="number" id="inputChurn" oninput="updateSessionData()" class="block w-full rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black py-3 px-4 pr-8 text-sm font-semibold text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="0">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5">
+                                    <span class="text-zinc-500 text-xs">%</span>
+                                </div>
+                            </div>
+                            <details class="mt-2 group cursor-pointer outline-none">
+                                <summary class="list-none text-[9px] text-brand-gold hover:text-brand-amber font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <svg class="w-3 h-3 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7-7-7-7"></path></svg>
+                                    Não sei o meu Churn! E agora?
+                                </summary>
+                                <div class="mt-2 p-3 bg-zinc-100 dark:bg-brand-zinc/50 rounded-lg text-[10px] leading-relaxed text-zinc-600 dark:text-zinc-400 font-medium space-y-1.5 border border-zinc-200 dark:border-brand-border/40">
+                                    <p><strong class="text-zinc-800 dark:text-zinc-200">Definição:</strong> É a percentagem de clientes que cancelam ou deixam de comprar anualmente.</p>
+                                    <p><strong class="text-zinc-800 dark:text-zinc-200">Como estimar:</strong> Se tinha 100 clientes no início do ano e 15 abandonaram a marca ou pararam de comprar, o seu Churn é de 15%.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="space-y-5 bg-white dark:bg-brand-black/30 border border-zinc-200 dark:border-brand-border/40 p-5 rounded-2xl">
+                <div class="border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                    <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest font-display">2. Assinale as Fraturas Existentes</h3>
+                    <p class="text-[10px] text-zinc-500 font-sans mt-1">Seja brutalmente honesto. Marque os erros que ocorrem hoje na sua operação.</p>
+                </div>
+
+                <div id="panelChecklists" class="flex flex-col gap-4">
+                    <div class="bg-white dark:bg-brand-black border border-zinc-200 dark:border-brand-border rounded-xl p-3.5 shadow-sm">
+                        <button onclick="toggleFenda('listCheckOp')" class="w-full text-left text-xs font-bold text-blue-500 dark:text-blue-400 mb-2 flex justify-between uppercase font-display">
+                            <span>Vetor Operacional <span class="text-[10px] text-zinc-400" id="countOp">0/15</span></span>
+                            <span id="scoreOpCheck" class="text-zinc-900 dark:text-white font-black">100</span>
+                        </button>
+                        <div class="space-y-2 border-t border-zinc-200 dark:border-zinc-800/80 pt-2 hidden" id="listCheckOp">
+                            <!-- Gerado dinamicamente via JS de acordo com o Setor do Utilizador -->
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-brand-black border border-zinc-200 dark:border-brand-border rounded-xl p-3.5 shadow-sm">
+                        <button onclick="toggleFenda('listCheckSem')" class="w-full text-left text-xs font-bold text-yellow-600 dark:text-yellow-500 mb-2 flex justify-between uppercase font-display">
+                            <span>Vetor Semiótico <span class="text-[10px] text-zinc-400" id="countSem">0/15</span></span>
+                            <span id="scoreSemCheck" class="text-zinc-900 dark:text-white font-black">100</span>
+                        </button>
+                        <div class="space-y-2 border-t border-zinc-200 dark:border-zinc-800/80 pt-2 hidden" id="listCheckSem">
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-brand-black border border-zinc-200 dark:border-brand-border rounded-xl p-3.5 shadow-sm">
+                        <button onclick="toggleFenda('listCheckCult')" class="w-full text-left text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2 flex justify-between uppercase font-display">
+                            <span>Vetor Cultural <span class="text-[10px] text-zinc-400" id="countCult">0/15</span></span>
+                            <span id="scoreCultCheck" class="text-zinc-900 dark:text-white font-black">100</span>
+                        </button>
+                        <div class="space-y-2 border-t border-zinc-200 dark:border-zinc-800/80 pt-2 hidden" id="listCheckCult">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="space-y-4 bg-white dark:bg-brand-black/30 border border-zinc-200 dark:border-brand-border/40 p-5 rounded-2xl">
+                <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest border-b border-zinc-200 dark:border-zinc-800 pb-2 font-display">3. Diagnóstico Qualitativo</h3>
+                <div class="flex flex-col gap-5 font-sans">
+                    <div>
+                        <label class="block text-[10px] text-zinc-600 dark:text-zinc-400 mb-1 uppercase font-bold">O que o seu Marketing Promete?</label>
+                        <textarea id="textDiscurso" oninput="updateSessionData()" class="w-full h-16 rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black p-3 text-xs text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="Ex: 'Entregamos luxo, rapidez e atendimento humanizado...'"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-zinc-600 dark:text-zinc-400 mb-1 uppercase font-bold">Como é a Realidade do Cliente (Na prática)?</label>
+                        <textarea id="textPratica" oninput="updateSessionData()" class="w-full h-16 rounded-xl border border-zinc-300 dark:border-brand-border bg-white dark:bg-brand-black p-3 text-xs text-zinc-900 dark:text-white focus:border-brand-amber focus:ring-1 focus:ring-brand-amber focus:outline-none" placeholder="Ex: 'O suporte demora a responder e envia respostas robóticas, as embalagens chegam amassadas...'"></textarea>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <!-- DASHBOARD DE RESULTADOS (DIREITA) -->
+        <section class="flex-1 bg-white dark:bg-brand-black p-6 md:p-12 overflow-y-auto space-y-10 animate-fade-in">
+            
+            <div class="hidden print-only text-center border-b border-zinc-300 pb-8 mb-6">
+                <h1 class="text-2xl font-black tracking-tight text-zinc-900 uppercase leading-none print-serif">DOSSIÊ FORENSE DE MARCA: COERÊNCIA SISTÊMICA & PROTEÇÃO DE EQUITY</h1>
+                <p class="text-sm text-zinc-500 font-sans mt-2">Documento estratégico e de governança confidencial</p>
+                <div class="text-xs text-zinc-400 mt-4 flex justify-center gap-8 font-semibold uppercase font-sans">
+                    <span id="printClientName">Cliente</span>
+                    <span id="printClientSector">Setor</span>
+                    <span id="printClientDate">Data</span>
+                </div>
+            </div>
+
+            <!-- CABEÇALHO DO DASHBOARD -->
+            <div id="dashboardHeader" class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-zinc-200 dark:border-brand-border pb-10 transition-colors duration-500">
+                <div class="space-y-3">
+                    <span class="text-xs font-black bg-zinc-100 dark:bg-brand-zinc text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-brand-border px-3.5 py-1.5 rounded-full uppercase tracking-widest font-display transition-colors duration-500 animate-pulse" id="badgeSetor">TRILHA</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white tracking-tighter uppercase leading-none font-display" id="lblClientName">Nome da Empresa</h2>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 font-sans">A analisar o impacto financeiro da quebra de integridade de marca.</p>
+                </div>
+
+                <div id="gaugeRingBlock" class="bg-zinc-50 dark:bg-brand-zinc border border-zinc-200 dark:border-brand-border rounded-xl p-4 flex items-center gap-4 shadow-sm dark:shadow-xl dark:shadow-black/40 transition-all duration-500">
+                    <div class="relative flex items-center justify-center">
+                        <svg class="w-16 h-16 transform -rotate-90">
+                            <circle cx="32" cy="32" r="28" stroke="#e4e4e7" class="dark:stroke-brand-border" stroke-width="4" fill="transparent"></circle>
+                            <circle cx="32" cy="32" r="28" id="gaugeCircle" stroke="#f59e0b" stroke-width="4" stroke-dasharray="175" stroke-dashoffset="175" fill="transparent" class="transition-all duration-1000"></circle>
+                        </svg>
+                        <div class="absolute text-center">
+                            <span class="text-lg font-black text-zinc-900 dark:text-white font-display" id="lblICSScore">0</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-zinc-400 dark:text-zinc-500 uppercase tracking-widest font-bold font-display">ÍNDICE DE SAÚDE (ICS)</div>
+                        <div class="text-sm font-extrabold mt-0.5 font-sans" id="lblICSStatus">Calculando...</div>
+                        <div class="text-[10px] text-zinc-500 dark:text-zinc-400 font-sans" id="lblICSPrescription">O seu score de 0 a 100.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARDS DE IMPACTO ADAPTATIVOS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div id="cardLossOp" class="bg-zinc-50 dark:bg-brand-zinc border border-zinc-200 dark:border-brand-border rounded-xl p-5 transition-all duration-500 shadow-sm flex flex-col justify-between min-h-[220px]">
+                    <div>
+                        <div class="flex items-center justify-between text-zinc-500 mb-2 font-sans">
+                            <span id="titleLossOp" class="text-xs font-bold uppercase tracking-wider font-display">Fricção de Checkout</span>
+                            <span id="cardDotOp" class="h-2.5 w-2.5 rounded-full transition-colors duration-500"></span>
+                        </div>
+                        <div class="text-3xl font-black text-brand-rose tracking-tighter font-display" id="lblPerdaFaturamento">0,00</div>
+                        <div class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 leading-snug font-sans animate-fade-in" id="txtLossCardExplain">
+                            Carregando...
+                        </div>
+                    </div>
+                    <div class="mt-2 border-t border-zinc-200 dark:border-zinc-800 pt-2 no-print font-sans">
+                        <details class="group cursor-pointer">
+                            <summary class="text-[9px] font-black text-zinc-400 hover:text-brand-gold flex items-center justify-between uppercase">
+                                <span>Ver Fonte</span> <span class="group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="text-[8px] text-zinc-500 mt-1 leading-normal">
+                                *Fundamentação:* McKinsey & Gartner. Fricção em jornadas de transação causam abandono na linha de chegada.
+                            </p>
+                        </details>
+                    </div>
+                </div>
+
+                <div id="cardLossCac" class="bg-zinc-50 dark:bg-brand-zinc border border-zinc-200 dark:border-brand-border rounded-xl p-5 transition-all duration-500 shadow-sm flex flex-col justify-between min-h-[220px]">
+                    <div>
+                        <div class="flex items-center justify-between text-zinc-500 mb-2">
+                            <span id="titleLossCac" class="text-xs font-bold uppercase tracking-wider font-display">Custo de Ads Perdido</span>
+                            <span id="cardDotCac" class="h-2.5 w-2.5 rounded-full transition-colors duration-500"></span>
+                        </div>
+                        <div class="text-3xl font-black text-brand-amber tracking-tighter font-display" id="lblDesperdicioCAC">0,00</div>
+                        <div class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 leading-snug font-sans animate-fade-in" id="txtCacCardExplain">
+                            Carregando...
+                        </div>
+                    </div>
+                    <div class="mt-2 border-t border-zinc-200 dark:border-zinc-800 pt-2 no-print font-sans">
+                        <details class="group cursor-pointer">
+                            <summary class="text-[9px] font-black text-zinc-400 hover:text-brand-gold flex items-center justify-between uppercase">
+                                <span>Ver Fonte</span> <span class="group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="text-[8px] text-zinc-500 mt-1 leading-normal">
+                                *Fundamentação:* Harvard Business Review. Leads repelidos por desalinhamento estético entre o anúncio e o destino.
+                            </p>
+                        </details>
+                    </div>
+                </div>
+
+                <div id="cardLossLtv" class="bg-zinc-50 dark:bg-brand-zinc border border-zinc-200 dark:border-brand-border rounded-xl p-5 transition-all duration-500 shadow-sm flex flex-col justify-between min-h-[220px]">
+                    <div>
+                        <div class="flex items-center justify-between text-zinc-500 mb-2">
+                            <span id="titleLossLtv" class="text-xs font-bold uppercase tracking-wider font-display">Clientes em Fuga</span>
+                            <span id="cardDotLtv" class="h-2.5 w-2.5 rounded-full transition-colors duration-500"></span>
+                        </div>
+                        <div class="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tighter font-display" id="lblPerdaLTV">0,00</div>
+                        <div class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 leading-snug font-sans animate-fade-in" id="txtLtvCardExplain">
+                            Carregando...
+                        </div>
+                    </div>
+                    <div class="mt-2 border-t border-zinc-200 dark:border-zinc-800 pt-2 no-print font-sans">
+                        <details class="group cursor-pointer">
+                            <summary class="text-[9px] font-black text-zinc-400 hover:text-brand-gold flex items-center justify-between uppercase">
+                                <span>Ver Fonte</span> <span class="group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <p class="text-[8px] text-zinc-500 mt-1 leading-normal">
+                                *Fundamentação:* Bain & Company. Valor de Vida (LTV) interrompido prematuramente devido a quebras de expectativa e suporte falho.
+                            </p>
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETALHAMENTO DE CUSTO TOTAL -->
+            <div id="panelFinancialOverview" class="bg-zinc-100 dark:bg-gradient-to-br dark:from-brand-zinc dark:to-zinc-950 border border-zinc-200 dark:border-brand-border rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 print-card print:border-zinc-200 shadow-lg shadow-zinc-200 dark:shadow-brand-zinc/20 transition-colors duration-500">
+                <div class="space-y-2 max-w-lg">
+                    <span class="text-xs font-bold text-rose-500 dark:text-rose-400 tracking-wider uppercase font-display" id="lblMainOverviewTitle">Vazamento Total Estimado</span>
+                    <h3 class="text-3xl md:text-4xl font-black text-rose-600 dark:text-white tracking-tight print-text-dark font-display" id="lblPrejuizoTotal">R$ 0,00</h3>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed print-text-muted font-sans" id="txtMainOverviewDesc">
+                        Valor aproximado que a sua empresa deixa na mesa todos os anos devido à fricção não resolvida na jornada do cliente.
+                    </p>
+                </div>
+                <div class="text-center md:text-right flex flex-col gap-2 shrink-0" id="divDailyLossPanel">
+                    <span class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider font-display">Custo Diário da Inação</span>
+                    <span class="text-xl font-bold text-rose-600 dark:text-rose-500" id="lblPerdaDiaria">R$ 0,00 / dia</span>
+                    <span class="text-[10px] bg-rose-500/10 text-brand-rose px-3 py-1 rounded-full border border-rose-500/20 uppercase font-semibold">O Seu Prejuízo Hoje</span>
+                </div>
+            </div>
+
+            <!-- PARECER CLÍNICO GERADO PELA IA (GEMINI) -->
+            <div class="border border-zinc-200 dark:border-brand-border bg-zinc-50 dark:bg-brand-zinc/20 rounded-2xl p-6 md:p-8 print-card print:border-zinc-200 shadow-md relative overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-zinc-200 dark:border-brand-border/40 pb-4 mb-6 gap-4">
+                    <h3 class="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2 print-text-dark font-display uppercase tracking-widest">
+                        <svg class="w-5 h-5 text-brand-gold shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19.5 14.25v-2.625a3.375 3.775 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.775 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"></path></svg>
+                        Parecer Clínico Forense
+                    </h3>
+                    
+                    <button onclick="generateAIDiagnostic()" id="btnGenerateAI" class="no-print bg-brand-ai hover:bg-purple-600 text-white font-bold text-[11px] px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-md shadow-brand-ai/30 uppercase tracking-wider font-display w-full md:w-auto justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"></path></svg>
+                        ✨ Gerar Diagnóstico com IA
+                    </button>
+                </div>
+                
+                <div id="aiLoadingState" class="hidden absolute inset-0 z-10 bg-white/90 dark:bg-brand-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <div class="h-12 w-12 rounded-full border-4 border-brand-ai border-t-transparent animate-spin mb-4"></div>
+                    <h4 class="text-sm font-bold text-brand-ai uppercase tracking-widest font-display mb-1">A Auditar a sua Marca...</h4>
+                    <p class="text-[10px] text-zinc-500 font-sans">Cruzando os seus dados operacionais com o nosso modelo. Aguarde.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 print-serif font-sans" id="containerDossierNarrative">
+                    <!-- Gerado dinamicamente -->
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-brand-border/40 flex flex-col md:flex-row md:items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wider font-sans">
+                    <div class="flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
+                        <span>A auditar trilha:</span>
+                        <span class="text-brand-amber font-bold" id="lblNarrativeTrilha">SETOR</span>
+                    </div>
+                    <div id="aiBadge" class="hidden flex items-center gap-1.5 text-brand-ai bg-brand-ai/10 px-2 py-1 rounded border border-brand-ai/20">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09z"></path></svg>
+                        Análise Gerada por IA Forense
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOCO: EVIDÊNCIAS DE ESTRUTURA CLÍNICA (FENDAS ATIVAS) -->
+            <div id="panelAuditedFractures" class="border border-zinc-200 dark:border-brand-border bg-zinc-50 dark:bg-brand-zinc/30 rounded-2xl p-6 print-card print:border-zinc-200 hidden">
+                <h3 class="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4 print-text-dark font-display">
+                    <svg class="w-5 h-5 text-brand-rose shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Inventário de Fendas Confessadas
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="containerAuditedFractures">
+                </div>
+            </div>
+
+            <!-- PLANO DE AÇÃO CTA -->
+            <div class="bg-gradient-to-br from-brand-gold to-brand-amber rounded-2xl p-8 print:hidden shadow-xl text-brand-black flex flex-col md:flex-row items-center justify-between gap-6 mt-12">
+                <div class="space-y-2">
+                    <h3 class="text-xl font-black uppercase tracking-tight font-display">Quer parar de queimar este dinheiro?</h3>
+                    <p class="text-sm font-medium font-sans max-w-md">Envie este diagnóstico diretamente para a nossa equipa. Vamos agendar uma sessão estratégica gratuita de 30 min para desenhar a sua Arquitetura de Cura.</p>
+                </div>
+                <button onclick="contactAgency()" class="w-full md:w-auto bg-brand-black hover:bg-zinc-800 text-white font-black uppercase tracking-widest text-xs px-8 py-4 rounded-xl transition-all shadow-xl shadow-brand-black/20 font-sans whitespace-nowrap">
+                    Agendar Sessão de Cura
+                </button>
+            </div>
+
+            <!-- RODAPÉ -->
+            <div class="text-center text-xs text-zinc-500 mt-6 pt-6 border-t border-zinc-200 dark:border-brand-border print-border-grey flex flex-col md:flex-row justify-between gap-4 font-sans font-medium">
+                <p>© 2026 Agência FOME. Confidencial.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // BASE DE DADOS DE FRATURAS
+        const FRATURAS_DATABASE = {
+            PHYGITAL: {
+                op: [
+                    { id: "p1", text: "Tempo de espera ou filas físicas de pagamento excedendo 7 minutos.", penalty: 6.67 },
+                    { id: "p2", text: "Falha de sincronização em tempo real entre o estoque físico e o site/app.", penalty: 6.67 },
+                    { id: "p3", text: "Processo de cadastro presencial manual utilizando papéis físicos.", penalty: 6.67 },
+                    { id: "p4", text: "Ausência de canais de WhatsApp de suporte rápido no PDV.", penalty: 6.67 },
+                    { id: "p8", text: "Processo de checkout físico burocrático com múltiplas validações manuais.", penalty: 6.67 }
+                ],
+                sem: [
+                    { id: "ps1", text: "Sinalização física gasta/improvisada ou visualmente desatualizada.", penalty: 6.67 },
+                    { id: "ps2", text: "Linguajar e vocabulário do staff desalinhados do posicionamento premium.", penalty: 6.67 },
+                    { id: "ps8", text: "Uniformes e apresentação do staff desleixados, amassados ou rasgados.", penalty: 6.67 },
+                    { id: "ps12", text: "Embalagens frágeis ou sacolas de papel sem refinamento estético.", penalty: 6.67 },
+                    { id: "ps14", text: "Desconexão óbvia entre as montras de época e o design do site.", penalty: 6.67 }
+                ],
+                cult: [
+                    { id: "pc1", text: "Staff apático, demonstrando fadiga física ou postura de rispidez.", penalty: 6.67 },
+                    { id: "pc3", text: "Abordagem de vendas agressiva que foca em comissão rápida sobre a ética.", penalty: 6.67 },
+                    { id: "pc5", text: "Falta de proatividade e empatia para contornar pequenas fricções na hora.", penalty: 6.67 },
+                    { id: "pc6", text: "Elevado índice de rotação de staff (Turnover) quebrando a constância.", penalty: 6.67 },
+                    { id: "pc11", text: "Colaboradores evitam assumir erros, culpando terceiros ou sistemas.", penalty: 6.67 }
+                ]
+            },
+            "PURE DIGITAL": {
+                op: [
+                    { id: "d1", text: "Checkout ou formulário de cadastro com mais de 4 cliques desnecessários.", penalty: 6.67 },
+                    { id: "d2", text: "Triagem automatizada (Bot) do WhatsApp em loop repetitivo de menus.", penalty: 6.67 },
+                    { id: "d3", text: "Tempo de carregamento de páginas críticas do site superior a 3 segundos.", penalty: 6.67 },
+                    { id: "d4", text: "Política e fluxo de reembolso/devolução complexo e sem botão no painel.", penalty: 6.67 },
+                    { id: "d7", text: "Ausência de carteiras digitais modernas (Apple Pay, Google Pay) no checkout.", penalty: 6.67 }
+                ],
+                sem: [
+                    { id: "ds1", text: "E-mails de transação automáticos com design cinza, frio e quebrado.", penalty: 6.67 },
+                    { id: "ds4", text: "Interface (UI) do site/app desalinhada com a sofisticação dos anúncios.", penalty: 6.67 },
+                    { id: "ds5", text: "Chatbot usando respostas em formato e tom padrão frio de TI.", penalty: 6.67 },
+                    { id: "ds8", text: "Desconexão estética evidente entre a Landing Page e o App logado.", penalty: 6.67 },
+                    { id: "ds12", text: "Tom de voz das notificações push agressivo, repetitivo ou invasivo.", penalty: 6.67 }
+                ],
+                cult: [
+                    { id: "dc1", text: "Agentes de chat cometendo erros gramaticais ou abreviações de internet.", penalty: 6.67 },
+                    { id: "dc3", text: "Respostas ríspidas ou robóticas em avaliações públicas (ex: ReclameAqui).", penalty: 6.67 },
+                    { id: "dc5", text: "Agentes priorizam fechar chamados rápido em vez de solucionar.", penalty: 6.67 },
+                    { id: "dc11", text: "Atendentes ignoram o histórico, forçando o cliente a repetir o problema.", penalty: 6.67 },
+                    { id: "dc13", text: "Staff evita assumir responsabilidades em erros operacionais do software.", penalty: 6.67 }
+                ]
+            },
+            INDUSTRIAL: {
+                op: [
+                    { id: "i1", text: "Elaboração e validação de propostas de engenharia demorando mais de 5 dias.", penalty: 6.67 },
+                    { id: "i4", text: "Divergências constantes em faturamento de ordens de serviço ou faturas.", penalty: 6.67 },
+                    { id: "i6", text: "Dificuldade de contacto direto com o gestor de contas responsável (sem canal).", penalty: 6.67 },
+                    { id: "i8", text: "Excesso de burocracia documental para cadastros simples de fornecedores.", penalty: 6.67 },
+                    { id: "i15", text: "Fluxos de aprovação financeira corporativa lentos e complexos.", penalty: 6.67 }
+                ],
+                sem: [
+                    { id: "is1", text: "Apresentações institucionais ou propostas comerciais poluídas e obsoletas.", penalty: 6.67 },
+                    { id: "is2", text: "Documentos e contratos jurídicos frios, burocráticos e complexos demais.", penalty: 6.67 },
+                    { id: "is4", text: "Manuais técnicos ou catálogos sem design ou sem o DNA verbal da marca.", penalty: 6.67 },
+                    { id: "is9", text: "Site corporativo datado e com design desalinhado da vanguarda moderna.", penalty: 6.67 },
+                    { id: "is11", text: "Propostas comerciais focadas puramente em tabelas técnicas e frias.", penalty: 6.67 }
+                ],
+                cult: [
+                    { id: "ic2", text: "Time técnico de engenharia ríspido ou sem polimento com o cliente.", penalty: 6.67 },
+                    { id: "ic3", text: "Transição comercial-operacional caótica e com desalinhamento de escopo.", penalty: 6.67 },
+                    { id: "ic4", text: "Operação encara o cliente B2B como um fardo técnico, sem parceria.", penalty: 6.67 },
+                    { id: "ic7", text: "Gestores de contas evitam erros técnicos e culpam parceiros em emails.", penalty: 6.67 },
+                    { id: "ic10", text: "Logística e comercial contradizendo-se em trocas de emails cruzados.", penalty: 6.67 }
+                ]
+            }
+        };
+
+        // ESTADO DA SESSÃO ÚNICA (LEAD)
+        let sessionClient = null;
+
+        // INICIALIZAÇÃO
+        window.onload = () => {
+            initTheme();
+            checkLeadGate();
+        };
+
+        function initTheme() {
+            const isDark = localStorage.getItem('fome_theme') === 'dark' || (!('fome_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.classList.toggle('dark', isDark);
+            document.getElementById('themeIconSun').classList.toggle('hidden', !isDark);
+            document.getElementById('themeIconMoon').classList.toggle('hidden', isDark);
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('fome_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIconSun').classList.toggle('hidden', !isDark);
+            document.getElementById('themeIconMoon').classList.toggle('hidden', isDark);
+        }
+
+        function showNotice(msg) {
+            const x = document.getElementById("toast");
+            x.textContent = msg; x.className = "show";
+            setTimeout(() => { x.className = ""; }, 3000);
+        }
+
+        // PORTÃO DE LEAD
+        function checkLeadGate() {
+            const savedLead = sessionStorage.getItem("fome_lead_session");
+            if (savedLead) {
+                sessionClient = JSON.parse(savedLead);
+                hideLeadGate();
+                loadSessionData();
+            } else {
+                document.getElementById('leadGate').classList.remove('hidden');
+                document.getElementById('mainBody').classList.add('overflow-hidden');
+            }
+        }
+
+        function startAudit(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('leadName').value;
+            const email = document.getElementById('leadEmail').value;
+            const company = document.getElementById('leadCompany').value;
+            const sector = document.getElementById('leadSector').value;
+
+            // --- AQUI ACONTECE A MÁGICA DE CAPTAÇÃO ---
+            // Numa implementação real, envie estes dados via Fetch para o seu FormSubmit, Zapier, Make, etc.
+            /*
+            fetch("https://formsubmit.co/seuemail@agencia.com", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Nome: name, Email: email, Empresa: company, Setor: sector })
+            });
+            */
+
+            // Cria a sessão na memória do navegador
+            sessionClient = {
+                name: company,
+                leadName: name,
+                leadEmail: email,
+                sector: sector,
+                faturamento: 0,
+                cac: 0,
+                ltv: 0,
+                churn: 0,
+                op: 100, sem: 100, cult: 100,
+                checkedFractures: [],
+                useChecklist: true,
+                presentationMode: "FINANCEIRO",
+                discurso: "", pratica: "", aiDossier: null
+            };
+
+            sessionStorage.setItem("fome_lead_session", JSON.stringify(sessionClient));
+            
+            showNotice(`Bem-vindo(a), ${name}! O seu ecossistema foi gerado.`);
+            hideLeadGate();
+            loadSessionData();
+        }
+
+        function hideLeadGate() {
+            const gate = document.getElementById('leadGate');
+            if(gate) gate.classList.add('hidden');
+            document.getElementById('mainBody').classList.remove('overflow-hidden');
+        }
+
+        function contactAgency() {
+            if(!sessionClient) return;
+            // Cria um mailto pre-preenchido ou envia para outra página de agendamento
+            const subject = encodeURIComponent(`Agendar Sessão de Cura - ${sessionClient.name}`);
+            const body = encodeURIComponent(`Olá equipa FOME, \n\nUtilizei a calculadora e percebi que tenho um score crítico no setor ${sessionClient.sector}. Gostaria de agendar a sessão estratégica.\n\nNome: ${sessionClient.leadName}`);
+            window.location.href = `mailto:hello@suaagencia.com?subject=${subject}&body=${body}`;
+        }
+
+        // CARREGAR E ATUALIZAR DADOS
+        function loadSessionData() {
+            if (!sessionClient) return;
+            
+            document.getElementById("displayUserCompany").textContent = sessionClient.name;
+            document.getElementById("lblClientName").textContent = sessionClient.name;
+            document.getElementById("badgeSetor").textContent = sessionClient.sector;
+            
+            document.getElementById("printClientName").textContent = sessionClient.name;
+            document.getElementById("printClientSector").textContent = sessionClient.sector;
+            document.getElementById("printClientDate").textContent = new Date().toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' });
+
+            document.getElementById("inputFaturamento").value = sessionClient.faturamento || "";
+            document.getElementById("inputCAC").value = sessionClient.cac || "";
+            document.getElementById("inputLTV").value = sessionClient.ltv || "";
+            document.getElementById("inputChurn").value = sessionClient.churn || "";
+            document.getElementById("textDiscurso").value = sessionClient.discurso || "";
+            document.getElementById("textPratica").value = sessionClient.pratica || "";
+            
+            document.getElementById("selectPresentationMode").value = sessionClient.presentationMode;
+
+            renderChecklistsUI(sessionClient.sector, sessionClient.checkedFractures);
+            calculateChecklistScores(); // Desencadeia os cálculos globais
+        }
+
+        function updateSessionData() {
+            if (!sessionClient) return;
+            
+            sessionClient.faturamento = parseFloat(document.getElementById("inputFaturamento").value) || 0;
+            sessionClient.cac = parseFloat(document.getElementById("inputCAC").value) || 0;
+            sessionClient.ltv = parseFloat(document.getElementById("inputLTV").value) || 0;
+            sessionClient.churn = parseFloat(document.getElementById("inputChurn").value) || 0;
+            
+            const oldDiscurso = sessionClient.discurso;
+            const oldPratica = sessionClient.pratica;
+            sessionClient.discurso = document.getElementById("textDiscurso").value;
+            sessionClient.pratica = document.getElementById("textPratica").value;
+
+            // Invalida a cache da IA se o texto mudar
+            if (oldDiscurso !== sessionClient.discurso || oldPratica !== sessionClient.pratica) {
+                sessionClient.aiDossier = null;
+            }
+
+            sessionStorage.setItem("fome_lead_session", JSON.stringify(sessionClient));
+            runCalculations();
+        }
+
+        function changePresentationMode(mode) {
+            if (!sessionClient) return;
+            sessionClient.presentationMode = mode;
+            sessionStorage.setItem("fome_lead_session", JSON.stringify(sessionClient));
+            runCalculations();
+        }
+
+        function toggleFenda(id) {
+            document.getElementById(id).classList.toggle("hidden");
+        }
+
+        function renderChecklistsUI(sector, checkedList) {
+            const db = FRATURAS_DATABASE[sector] || FRATURAS_DATABASE["PHYGITAL"];
+            ['op', 'sem', 'cult'].forEach(vec => {
+                const container = document.getElementById(`listCheck${vec.charAt(0).toUpperCase() + vec.slice(1)}`);
+                if (!container) return;
+                container.innerHTML = "";
+                db[vec].forEach(f => {
+                    const checked = checkedList.includes(f.id) ? 'checked' : '';
+                    container.innerHTML += `
+                        <label class="flex items-start gap-3 p-2 hover:bg-zinc-100 dark:hover:bg-brand-zinc rounded-lg cursor-pointer transition-all">
+                            <input type="checkbox" onchange="toggleFracture('${f.id}', this.checked)" ${checked} class="mt-1 accent-brand-gold w-4 h-4">
+                            <div class="space-y-0.5">
+                                <p class="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">${f.text}</p>
+                                <span class="text-[9px] font-black text-brand-rose uppercase">-${f.penalty} pts</span>
+                            </div>
+                        </label>`;
+                });
+            });
+        }
+
+        function toggleFracture(id, isChecked) {
+            if (!sessionClient) return;
+            if (isChecked) {
+                if (!sessionClient.checkedFractures.includes(id)) sessionClient.checkedFractures.push(id);
+            } else {
+                sessionClient.checkedFractures = sessionClient.checkedFractures.filter(f => f !== id);
+            }
+            sessionClient.aiDossier = null; // Invalida a cache IA
+            sessionStorage.setItem("fome_lead_session", JSON.stringify(sessionClient));
+            calculateChecklistScores();
+        }
+
+        function calculateChecklistScores() {
+            if (!sessionClient) return;
+            const db = FRATURAS_DATABASE[sessionClient.sector] || FRATURAS_DATABASE["PHYGITAL"];
+
+            ['op', 'sem', 'cult'].forEach(vec => {
+                let score = 100;
+                let count = 0;
+                db[vec].forEach(f => { 
+                    if(sessionClient.checkedFractures.includes(f.id)) { score -= f.penalty; count++; }
+                });
+                sessionClient[vec] = Math.max(0, score);
+                document.getElementById(`score${vec.charAt(0).toUpperCase() + vec.slice(1)}Check`).textContent = Math.round(sessionClient[vec]);
+                document.getElementById(`count${vec.charAt(0).toUpperCase() + vec.slice(1)}`).textContent = `${count}/5`; // Notei que reduzi o DB para 5 apenas para exemplo
+            });
+            runCalculations();
+        }
+
+        // --- GEMINI AI IMPLEMENTATION ---
+        async function generateAIDiagnostic() {
+            if (!sessionClient) return;
+            const btnAI = document.getElementById("btnGenerateAI");
+            const loadingState = document.getElementById("aiLoadingState");
+
+            if (!sessionClient.discurso || !sessionClient.pratica) {
+                alert("Por favor, preencha o 'Discurso (Promessa)' e a 'Prática (Realidade)' na barra lateral antes de pedir a análise da IA.");
+                return;
+            }
+
+            loadingState.classList.remove("hidden");
+            btnAI.disabled = true; btnAI.classList.add("opacity-50", "cursor-not-allowed");
+
+            let activeFracturesText = [];
+            const db = FRATURAS_DATABASE[sessionClient.sector];
+            [...db.op, ...db.sem, ...db.cult].forEach(item => {
+                if (sessionClient.checkedFractures.includes(item.id)) activeFracturesText.push(item.text);
+            });
+
+            const ics = (sessionClient.op * 0.45) + (sessionClient.sem * 0.35) + (sessionClient.cult * 0.20);
+            
+            const systemPrompt = `Você é um auditor forense de marca de elite e estrategista sênior de negócios (estilo McKinsey). O seu objetivo é analisar o abismo entre o que uma marca promete e a realidade que ela entrega. Seja cru, objetivo e foque no impacto financeiro e perda de clientes (Churn). Responda ESTRITAMENTE em HTML com 4 divs.`;
+            
+            const userPrompt = `
+            *DADOS DA MARCA*
+            Setor: ${sessionClient.sector}
+            Score de Saúde (ICS, 0-100): ${ics.toFixed(1)}
+            A Promessa (O que dizem): "${sessionClient.discurso}"
+            A Prática (Realidade): "${sessionClient.pratica}"
+            Fendas ativas: ${activeFracturesText.length > 0 ? activeFracturesText.join(" | ") : "Nenhuma reportada."}
+
+            *INSTRUÇÕES DE FORMATO*
+            Retorne APENAS o código HTML de 4 divs:
+            <div class="space-y-1.5 p-5 rounded-2xl bg-brand-ai/5 border border-brand-ai/20 transition-colors duration-500 print-card print:border-zinc-300">
+                <h4 class="text-[10px] font-black uppercase tracking-widest text-brand-ai print:text-zinc-900 font-display">I. Nome do Pilar (ex: Identidade)</h4>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans print-serif">Sua análise crua e forense cruzando os dados...</p>
+            </div>
+            `;
+
+            try {
+                // Em produção, oculte esta lógica num backend simples ou Netlify Edge Function.
+                // Mas para efeitos de teste direto no cliente, o Immersive do Gemini tratará da chave.
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                    })
+                });
+
+                if (!response.ok) throw new Error("Erro de API.");
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    let aiHtml = candidate.content.parts[0].text;
+                    aiHtml = aiHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                    sessionClient.aiDossier = aiHtml;
+                    sessionStorage.setItem("fome_lead_session", JSON.stringify(sessionClient));
+                    generateStructuredDossier(sessionClient, ics);
+                    showNotice("Parecer IA Gerado com Sucesso!");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("Falha na comunicação com a IA. Tente mais tarde.");
+            } finally {
+                loadingState.classList.add("hidden");
+                btnAI.disabled = false; btnAI.classList.remove("opacity-50", "cursor-not-allowed");
+            }
+        }
+
+        function generateStructuredDossier(client, ics) {
+            const container = document.getElementById("containerDossierNarrative");
+            const badgeAI = document.getElementById("aiBadge");
+            if (!container) return;
+
+            if (client.aiDossier) {
+                container.innerHTML = client.aiDossier;
+                if (badgeAI) badgeAI.classList.remove("hidden");
+                return;
+            }
+
+            if (badgeAI) badgeAI.classList.add("hidden");
+            
+            let p1, p2, p3, p4;
+            if (ics >= 85) {
+                p1 = "A marca respira de forma saudável. A liderança mantém consistência entre os discursos declarados e as ações.";
+                p2 = "Alinhamento semiótico de alta fidelidade técnica. A comunicação é fluida e preserva a autoridade da marca.";
+                p3 = "Baixíssima fricção operacional. Checkout limpo e atendimento mantêm o valor vitalício blindado.";
+                p4 = "Cultura interna em sincronismo. O staff domina o tom de voz e os pilares éticos da empresa.";
+            } else if (ics >= 60) {
+                p1 = "O 'Ser' da marca está desalinhado. Existe um discurso de topo que não se materializa em comportamento contínuo.";
+                p2 = "Fratura semiótica visível. Enquanto os anúncios mantêm luxo, as respostas automáticas são genéricas.";
+                p3 = "Fricção moderada na conversão. Barreiras sistémicas ocultas causam abandono de leads, inflacionando o CAC.";
+                p4 = "O staff atua sob stress por falta de ferramentas. A fenda é de infraestrutura técnica e processos.";
+            } else {
+                p1 = "Fragmentação Crítica. A identidade corporativa não pulsa nas realidades comerciais e atendimento base.";
+                p2 = "Ruído grave. O cliente sofre um choque estético negativo ao entrar na esteira pós-venda.";
+                p3 = "Gargalos severos. Burocracias redundantes empurram o cliente diretamente para a quebra de lealdade.";
+                p4 = "Linha de frente em modo mecânico. A falta de processos corrói o Equity financeiro de forma silenciosa.";
+            }
+            
+            container.innerHTML = `
+                <div class="space-y-1.5 p-5 rounded-2xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-brand-border/40 transition-colors duration-500 print-card print:border-zinc-300">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-brand-gold dark:text-brand-amber print:text-zinc-900 font-display">I. Identidade & Promessa</h4>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans print-serif">${p1}</p>
+                </div>
+                <div class="space-y-1.5 p-5 rounded-2xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-brand-border/40 transition-colors duration-500 print-card print:border-zinc-300">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-brand-gold dark:text-brand-amber print:text-zinc-900 font-display">II. Consistência Semiótica</h4>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans print-serif">${p2}</p>
+                </div>
+                <div class="space-y-1.5 p-5 rounded-2xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-brand-border/40 transition-colors duration-500 print-card print:border-zinc-300">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-brand-gold dark:text-brand-amber print:text-zinc-900 font-display">III. Fricção Operacional</h4>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans print-serif">${p3}</p>
+                </div>
+                <div class="space-y-1.5 p-5 rounded-2xl bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-brand-border/40 transition-colors duration-500 print-card print:border-zinc-300">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-brand-gold dark:text-brand-amber print:text-zinc-900 font-display">IV. Cultura de Linha de Frente</h4>
+                    <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-sans print-serif">${p4}</p>
+                </div>
+            `;
+            document.getElementById("lblNarrativeTrilha").textContent = client.sector;
+        }
+
+        // CÁLCULOS PRINCIPAIS
+        function runCalculations() {
+            if (!sessionClient) return;
+
+            const opScore = parseFloat(sessionClient.op) || 0;
+            const semScore = parseFloat(sessionClient.sem) || 0;
+            const cultScore = parseFloat(sessionClient.cult) || 0;
+
+            const ics = (opScore * 0.45) + (semScore * 0.35) + (cultScore * 0.20);
+            
+            document.getElementById("lblICSScore").textContent = ics.toFixed(0);
+            document.getElementById("gaugeCircle").setAttribute("stroke-dashoffset", 264 - (264 * (ics / 100)));
+
+            let mpi = 0;
+            if (ics >= 85) mpi = (100 - ics) * 0.0005;
+            else if (ics >= 60) mpi = 0.015 + (85 - ics) * 0.0015;
+            else mpi = 0.0525 + (60 - ics) * 0.0035;
+
+            const faturamento = parseFloat(sessionClient.faturamento) || 0;
+            const cac = parseFloat(sessionClient.cac) || 0;
+            const churn = parseFloat(sessionClient.churn) || 0;
+            const ltv = parseFloat(sessionClient.ltv) || 0;
+
+            const perdaOp = faturamento * mpi;
+            const perdaCac = cac * ((100 - ics) / 100) * 0.50; 
+
+            const tmMap = { PHYGITAL: 2000, "PURE DIGITAL": 1200, INDUSTRIAL: 15000 };
+            const tm = tmMap[sessionClient.sector] || 2000;
+            const baseClientesEstimada = tm > 0 ? (faturamento / tm) : 0;
+            const clientesPerdidos = baseClientesEstimada * (churn / 100);
+            const perdaLtv = clientesPerdidos * ltv * ((100 - ics) / 100);
+
+            const total = perdaOp + perdaCac + perdaLtv;
+
+            updateDOMMetrics(ics, mpi, perdaOp, perdaCac, perdaLtv, total);
+            updateColors(ics);
+            renderAuditedFracturesReport(sessionClient);
+            generateStructuredDossier(sessionClient, ics);
+            
+            const lblExibDiscurso = document.getElementById("lblExibDiscurso");
+            if (lblExibDiscurso) {
+                lblExibDiscurso.textContent = sessionClient.discurso || "Aguardando definição do discurso de marketing...";
+            }
+            
+            const lblExibPratica = document.getElementById("lblExibPratica");
+            if (lblExibPratica) {
+                lblExibPratica.textContent = sessionClient.pratica || "Aguardando evidências de campo...";
+            }
+        }
+
+        function updateDOMMetrics(ics, mpi, perdaOp, perdaCac, perdaLtv, total) {
+            const formatMoney = (val) => "R$ " + val.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            const isFin = sessionClient.presentationMode === "FINANCEIRO";
+
+            // Painel Global
+            document.getElementById("lblPrejuizoTotal").textContent = isFin ? formatMoney(total) : ics.toFixed(1) + "%";
+            document.getElementById("lblMainOverviewTitle").textContent = isFin ? "Vazamento Total Estimado" : "Índice de Eficiência de Coerência Sistémica";
+            document.getElementById("divDailyLossPanel").classList.toggle("hidden", !isFin);
+            if(isFin) document.getElementById("lblPerdaDiaria").textContent = formatMoney(total / 365) + " / dia";
+
+            // Card 1
+            document.getElementById("lblPerdaFaturamento").textContent = isFin ? formatMoney(perdaOp) : (mpi * 100).toFixed(1) + "%";
+            document.getElementById("txtLossCardExplain").innerHTML = isFin 
+                ? `Impacto financeiro baseado em atrito de jornada (<strong>${(mpi * 100).toFixed(1)}%</strong> de perda no funil).`
+                : `Desvio estimado de conversão bruta na linha de chegada.`;
+
+            // Card 2
+            document.getElementById("lblDesperdicioCAC").textContent = isFin ? formatMoney(perdaCac) : ((100 - ics) * 0.50).toFixed(0) + "%";
+            document.getElementById("txtCacCardExplain").innerHTML = isFin
+                ? `Custo incinerado por quebra de expectativa (<strong>${((100 - ics) * 0.50).toFixed(0)}%</strong> do tráfego).`
+                : `Tráfego pago repelido na primeira impressão.`;
+
+            // Card 3
+            document.getElementById("lblPerdaLTV").textContent = isFin ? formatMoney(perdaLtv) : ((100 - ics) * 0.35).toFixed(0) + "%";
+            document.getElementById("txtLtvCardExplain").innerHTML = isFin
+                ? `Impacto de Churn no LTV de base (<strong>${((100 - ics) * 0.35).toFixed(0)}%</strong> de risco).`
+                : `Risco de desgaste de permanência por promessas quebradas.`;
+        }
+
+        function renderAuditedFracturesReport(client) {
+            const container = document.getElementById("containerAuditedFractures");
+            const panel = document.getElementById("panelAuditedFractures");
+            if (!container || !panel) return;
+            container.innerHTML = "";
+
+            if (!client.checkedFractures || client.checkedFractures.length === 0) {
+                panel.classList.add("hidden"); return;
+            }
+
+            panel.classList.remove("hidden");
+            const db = FRATURAS_DATABASE[client.sector];
+            const allFractures = [...db.op, ...db.sem, ...db.cult];
+
+            allFractures.forEach(item => {
+                if (client.checkedFractures.includes(item.id)) {
+                    container.innerHTML += `
+                        <div class="flex items-start gap-2.5 bg-zinc-100 dark:bg-brand-zinc/50 border border-zinc-200 dark:border-brand-border/40 p-3 rounded-lg print-card shadow-sm">
+                            <span class="mt-1 h-1.5 w-1.5 rounded-full bg-brand-rose shrink-0 animate-pulse"></span>
+                            <p class="text-xs text-zinc-800 dark:text-zinc-300 font-medium leading-tight font-sans">${item.text}</p>
+                        </div>`;
+                }
+            });
+        }
+
+        function updateColors(ics) {
+            const status = document.getElementById("lblICSStatus");
+            const dotOp = document.getElementById("cardDotOp");
+            const dotCac = document.getElementById("cardDotCac");
+            const dotLtv = document.getElementById("cardDotLtv");
+
+            if (ics >= 85) {
+                status.textContent = "Sistema Saudável"; status.className = "font-black text-lg text-brand-emerald uppercase tracking-tighter";
+                [dotOp, dotCac, dotLtv].forEach(el => { if(el) el.className = "h-2.5 w-2.5 rounded-full bg-brand-emerald" });
+            } else if (ics >= 60) {
+                status.textContent = "Sistema Fraturado"; status.className = "font-black text-lg text-brand-gold uppercase tracking-tighter";
+                [dotOp, dotCac, dotLtv].forEach(el => { if(el) el.className = "h-2.5 w-2.5 rounded-full bg-brand-amber" });
+            } else {
+                status.textContent = "Risco Crítico"; status.className = "font-black text-lg text-brand-rose uppercase tracking-tighter";
+                [dotOp, dotCac, dotLtv].forEach(el => { if(el) el.className = "h-2.5 w-2.5 rounded-full bg-brand-rose" });
+            }
+        }
+    </script>
+</body>
+</html>
