@@ -688,9 +688,12 @@
             // --- AQUI ACONTECE A MÁGICA DE CAPTAÇÃO ---
             // Numa implementação real, envie estes dados via Fetch para o seu FormSubmit, Zapier, Make, etc.
             
-            fetch("https://formsubmit.co/juhcosta23@gmail.com", {
+            fetch("https://formsubmit.co/ajax/juhcosta23@gmail.com", {
                 method: "POST",
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({ Nome: name, Email: email, Empresa: company, Setor: sector })
             });
             
