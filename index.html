@@ -949,7 +949,10 @@ Fendas sistêmicas detetadas: ${activeFracturesText.length > 0 ? activeFractures
             if(!sessionClient) return;
             const subject = encodeURIComponent(`Diagnóstico ICS: Solicitação de Especialista - ${sessionClient.name}`);
             const body = encodeURIComponent(`Olá equipe FOME,\n\nAcabei de realizar a auditoria da Calculadora ICS e meu Score de Coerência apontou risco crítico no setor ${sessionClient.sector}.\n\nGostaria de agendar uma reunião com os especialistas para curar os vazamentos operacionais da minha marca.\n\nNome: ${sessionClient.leadName}\nEmpresa: ${sessionClient.name}\nEmail: ${sessionClient.leadEmail}`);
-            window.location.href = `mailto:contato@agenciafome.com.br?subject=${subject}&body=${body}`;
+            
+            // Força a abertura do link mailto em uma nova aba para acionar o app de email
+            const mailtoLink = `mailto:contato@agenciafome.com.br?subject=${subject}&body=${body}`;
+            window.open(mailtoLink, '_blank') || (window.location.href = mailtoLink);
         }
 
         // MODO ADMINISTRADOR (RECONSTRUÇÃO DO PDF PELO LINK DO EMAIL)
