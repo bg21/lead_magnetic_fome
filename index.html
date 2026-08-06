@@ -457,6 +457,26 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- PARÂMETROS DECLARADOS (VISÍVEL APENAS NA IMPRESSÃO) -->
+            <div class="hidden print-only grid grid-cols-4 gap-4 border border-zinc-200 bg-white rounded-xl p-5 mb-8">
+                <div>
+                    <span class="block text-[9px] font-bold uppercase text-zinc-500 mb-1 font-display tracking-widest">Faturamento Anual</span>
+                    <span class="text-sm font-black text-zinc-900 font-sans" id="printFaturamento">R$ 0</span>
+                </div>
+                <div>
+                    <span class="block text-[9px] font-bold uppercase text-zinc-500 mb-1 font-display tracking-widest">Orçamento Marketing</span>
+                    <span class="text-sm font-black text-zinc-900 font-sans" id="printCAC">R$ 0</span>
+                </div>
+                <div>
+                    <span class="block text-[9px] font-bold uppercase text-zinc-500 mb-1 font-display tracking-widest">LTV Médio</span>
+                    <span class="text-sm font-black text-zinc-900 font-sans" id="printLTV">R$ 0</span>
+                </div>
+                <div>
+                    <span class="block text-[9px] font-bold uppercase text-zinc-500 mb-1 font-display tracking-widest">Churn Anual</span>
+                    <span class="text-sm font-black text-zinc-900 font-sans" id="printChurn">0%</span>
+                </div>
+            </div>
 
             <!-- SEÇÃO DE RESULTADOS CONSTRUTIVOS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -835,14 +855,15 @@
             btn.disabled = true;
 
             // Transforma as fendas (IDs) selecionadas em textos legíveis e separadas por categoria
-            const db = FRATURAS_DATABASE[sessionClient.sector];
+            const db = FRATURAS_DATABASE[sessionClient.sector] || FRATURAS_DATABASE["PHYGITAL"];
+            const checkedList = sessionClient.checkedFractures || [];
             let fendasOperacionais = [];
             let fendasSemioticas = [];
             let fendasCulturais = [];
 
-            db.op.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasOperacionais.push(item.text); });
-            db.sem.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasSemioticas.push(item.text); });
-            db.cult.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasCulturais.push(item.text); });
+            db.op.forEach(item => { if (checkedList.includes(item.id)) fendasOperacionais.push(item.text); });
+            db.sem.forEach(item => { if (checkedList.includes(item.id)) fendasSemioticas.push(item.text); });
+            db.cult.forEach(item => { if (checkedList.includes(item.id)) fendasCulturais.push(item.text); });
 
             const icsScore = document.getElementById("lblICSScore") ? document.getElementById("lblICSScore").textContent : "0";
 
@@ -1073,6 +1094,12 @@
         }
 
         function updateDOMMetrics(ics, mpi) {
+            // Atualizar valores do PDF
+            if(document.getElementById("printFaturamento")) document.getElementById("printFaturamento").textContent = sessionClient.faturamento ? `R$ ${sessionClient.faturamento}` : "N/D";
+            if(document.getElementById("printCAC")) document.getElementById("printCAC").textContent = sessionClient.cac ? `R$ ${sessionClient.cac}` : "N/D";
+            if(document.getElementById("printLTV")) document.getElementById("printLTV").textContent = sessionClient.ltv ? `R$ ${sessionClient.ltv}` : "N/D";
+            if(document.getElementById("printChurn")) document.getElementById("printChurn").textContent = sessionClient.churn ? `${sessionClient.churn}%` : "N/D";
+
             // MODO ESTRATÉGICO EXCLUSIVO
             document.getElementById("lblPrejuizoTotal").textContent = ics.toFixed(1) + "%";
             
