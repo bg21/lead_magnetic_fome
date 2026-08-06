@@ -63,6 +63,7 @@
 
         /* Print Styles */
         @media print {
+            @page { margin: 15mm; }
             body { background: white !important; color: black !important; }
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -73,6 +74,22 @@
             .print-border-grey { border-color: #e4e4e7 !important; }
             #leadGate { display: none !important; }
             main { padding: 0 !important; }
+            
+            /* Evita corte no meio dos blocos */
+            .print-break-avoid, 
+            .grid > div,
+            #panelAuditedFractures,
+            .print-card { 
+                page-break-inside: avoid !important; 
+                break-inside: avoid !important; 
+            }
+            
+            /* Garante que o grid se comporte bem e espaçado no PDF */
+            .grid { gap: 1.5rem !important; }
+            
+            /* Espaçamentos e resets */
+            #resultDashboard { display: block !important; padding-top: 0 !important; }
+            .space-y-10 > :not([hidden]) ~ :not([hidden]) { margin-top: 2rem !important; }
         }
     </style>
 </head>
@@ -721,7 +738,8 @@
                     A_Pratica_Realidade_Corporativa: sessionClient.pratica || "Não preenchido",
                     Fendas_Operacionais: fendasOperacionais.length > 0 ? fendasOperacionais.join(" | ") : "Nenhuma selecionada",
                     Fendas_Semioticas: fendasSemioticas.length > 0 ? fendasSemioticas.join(" | ") : "Nenhuma selecionada",
-                    Fendas_Culturais: fendasCulturais.length > 0 ? fendasCulturais.join(" | ") : "Nenhuma selecionada"
+                    Fendas_Culturais: fendasCulturais.length > 0 ? fendasCulturais.join(" | ") : "Nenhuma selecionada",
+                    Link_Gerar_PDF_Administrativo: `${window.location.href.split('#')[0]}#admin=${btoa(encodeURIComponent(JSON.stringify(sessionClient)))}`
                 })
             }).catch(e => console.error("Erro no envio do email:", e));
 
@@ -933,6 +951,31 @@ Fendas sistêmicas detetadas: ${activeFracturesText.length > 0 ? activeFractures
             const body = encodeURIComponent(`Olá equipe FOME,\n\nAcabei de realizar a auditoria da Calculadora ICS e meu Score de Coerência apontou risco crítico no setor ${sessionClient.sector}.\n\nGostaria de agendar uma reunião com os especialistas para curar os vazamentos operacionais da minha marca.\n\nNome: ${sessionClient.leadName}\nEmpresa: ${sessionClient.name}\nEmail: ${sessionClient.leadEmail}`);
             window.location.href = `mailto:contato@agenciafome.com.br?subject=${subject}&body=${body}`;
         }
+
+        // MODO ADMINISTRADOR (RECONSTRUÇÃO DO PDF PELO LINK DO EMAIL)
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.location.hash.startsWith("#admin=")) {
+                try {
+                    const payload = window.location.hash.replace("#admin=", "");
+                    sessionClient = JSON.parse(decodeURIComponent(atob(payload)));
+                    
+                    // Oculta form e abre direto o resultado
+                    document.getElementById('leadGate').classList.add('hidden');
+                    document.getElementById('mainBody').classList.remove('overflow-y-auto');
+                    
+                    // Preenche o painel
+                    populateDashboard();
+                    
+                    // Exibe tudo sem o Loading da IA para o dono
+                    document.getElementById('resultHeader').classList.remove('hidden');
+                    document.getElementById('resultDashboard').classList.remove('hidden');
+                    
+                    showNotice("Modo Admin: PDF Pronto para Baixar.");
+                } catch (e) {
+                    console.error("Link de administrador inválido", e);
+                }
+            }
+        });
     </script>
 </body>
 </html>
