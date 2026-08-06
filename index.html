@@ -834,12 +834,15 @@
             btn.innerHTML = "A processar envio...";
             btn.disabled = true;
 
-            // Transforma as fendas (IDs) selecionadas em textos legíveis
+            // Transforma as fendas (IDs) selecionadas em textos legíveis e separadas por categoria
             const db = FRATURAS_DATABASE[sessionClient.sector];
-            let activeFracturesText = [];
-            [...db.op, ...db.sem, ...db.cult].forEach(item => {
-                if (sessionClient.checkedFractures.includes(item.id)) activeFracturesText.push(item.text);
-            });
+            let fendasOperacionais = [];
+            let fendasSemioticas = [];
+            let fendasCulturais = [];
+
+            db.op.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasOperacionais.push(item.text); });
+            db.sem.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasSemioticas.push(item.text); });
+            db.cult.forEach(item => { if (sessionClient.checkedFractures.includes(item.id)) fendasCulturais.push(item.text); });
 
             const icsScore = document.getElementById("lblICSScore") ? document.getElementById("lblICSScore").textContent : "0";
 
@@ -852,18 +855,21 @@
                 },
                 body: JSON.stringify({ 
                     access_key: "91ed69fb-f180-4da3-a768-02f08b53cf60",
+                    subject: `Novo Dossiê FOME - ${sessionClient.name} (Score: ${icsScore})`,
                     Nome: sessionClient.leadName, 
                     Email: sessionClient.leadEmail, 
                     Empresa: sessionClient.name, 
                     Setor: sessionClient.sector,
-                    Faturamento_Anual: sessionClient.faturamento,
-                    CAC: sessionClient.cac,
-                    LTV: sessionClient.ltv,
-                    Churn_Anual: sessionClient.churn + "%",
-                    Discurso_Promessa: sessionClient.discurso || "Não preenchido",
-                    Pratica_Realidade: sessionClient.pratica || "Não preenchido",
-                    Fendas_Selecionadas: activeFracturesText.length > 0 ? activeFracturesText.join(" | ") : "Nenhuma selecionada",
-                    Score_ICS: icsScore
+                    Score_ICS: icsScore,
+                    Faturamento_Anual: sessionClient.faturamento ? `R$ ${sessionClient.faturamento}` : "Não preenchido",
+                    Orcamento_Marketing: sessionClient.cac ? `R$ ${sessionClient.cac}` : "Não preenchido",
+                    LTV: sessionClient.ltv ? `R$ ${sessionClient.ltv}` : "Não preenchido",
+                    Churn_Anual: sessionClient.churn ? `${sessionClient.churn}%` : "Não preenchido",
+                    Diagnostico_Qualitativo_Promessa: sessionClient.discurso || "Não preenchido",
+                    Diagnostico_Qualitativo_Realidade: sessionClient.pratica || "Não preenchido",
+                    Fendas_Operacionais: fendasOperacionais.length > 0 ? fendasOperacionais.join(" | ") : "Nenhuma selecionada",
+                    Fendas_Semioticas: fendasSemioticas.length > 0 ? fendasSemioticas.join(" | ") : "Nenhuma selecionada",
+                    Fendas_Culturais: fendasCulturais.length > 0 ? fendasCulturais.join(" | ") : "Nenhuma selecionada"
                 })
             }).then(() => {
                 // Restaura o botão
