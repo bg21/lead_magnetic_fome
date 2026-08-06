@@ -444,6 +444,41 @@
         </div>
     </main>
 
+    <!-- MODAL DE ESCOLHA DE EMAIL -->
+    <div id="contactModal" class="fixed inset-0 z-[400] bg-zinc-900/80 backdrop-blur-sm hidden flex-col items-center justify-center p-4">
+        <div class="bg-white dark:bg-brand-zinc border border-zinc-200 dark:border-brand-border rounded-[2rem] p-8 max-w-md w-full shadow-2xl relative animate-fade-in">
+            <!-- Botão Fechar -->
+            <button onclick="closeContactModal()" class="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <h3 class="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight font-display mb-2">Agendar Sessão</h3>
+            <p class="text-sm text-zinc-500 dark:text-zinc-400 font-sans mb-8 leading-relaxed">
+                Como prefere enviar a solicitação para os nossos especialistas?
+            </p>
+
+            <div class="space-y-4">
+                <!-- Opção Gmail Web -->
+                <button onclick="sendViaGmail()" class="w-full bg-zinc-100 hover:bg-zinc-200 dark:bg-brand-black dark:hover:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white font-black uppercase tracking-widest text-xs px-6 py-4 rounded-xl transition-all flex items-center justify-start gap-4">
+                    <span class="text-brand-rose text-xl">🟥</span>
+                    <div class="text-left">
+                        <div class="block">Abrir no Gmail</div>
+                        <div class="text-[9px] font-semibold text-zinc-500 normal-case mt-0.5 tracking-normal">Abre direto no seu navegador web</div>
+                    </div>
+                </button>
+
+                <!-- Opção App Padrão -->
+                <button onclick="sendViaApp()" class="w-full bg-brand-gold hover:bg-brand-amber text-brand-black font-black uppercase tracking-widest text-xs px-6 py-4 rounded-xl transition-all flex items-center justify-start gap-4 shadow-xl shadow-brand-gold/10">
+                    <span class="text-blue-500 text-xl">🟦</span>
+                    <div class="text-left">
+                        <div class="block">Aplicativo de E-mail</div>
+                        <div class="text-[9px] font-semibold text-brand-black/70 normal-case mt-0.5 tracking-normal">Outlook, Apple Mail ou celular</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // BASE DE DADOS DE FRATURAS (5 MODELOS - TRADUZIDO PT-BR)
         const FRATURAS_DATABASE = {
@@ -944,15 +979,36 @@ Fendas sistêmicas detetadas: ${activeFracturesText.length > 0 ? activeFractures
             }
         }
 
-        // AÇÃO DO BOTÃO DE CONTATO
+        // AÇÃO DO BOTÃO DE CONTATO (Abre o Modal)
         function contactAgency() {
             if(!sessionClient) return;
+            document.getElementById('contactModal').classList.remove('hidden');
+            document.getElementById('contactModal').classList.add('flex');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.remove('flex');
+            document.getElementById('contactModal').classList.add('hidden');
+        }
+
+        function getEmailContent() {
             const subject = encodeURIComponent(`Diagnóstico ICS: Solicitação de Especialista - ${sessionClient.name}`);
             const body = encodeURIComponent(`Olá equipe FOME,\n\nAcabei de realizar a auditoria da Calculadora ICS e meu Score de Coerência apontou risco crítico no setor ${sessionClient.sector}.\n\nGostaria de agendar uma reunião com os especialistas para curar os vazamentos operacionais da minha marca.\n\nNome: ${sessionClient.leadName}\nEmpresa: ${sessionClient.name}\nEmail: ${sessionClient.leadEmail}`);
-            
-            // Força a abertura do link mailto em uma nova aba para acionar o app de email
+            return { subject, body };
+        }
+
+        function sendViaGmail() {
+            const { subject, body } = getEmailContent();
+            const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=contato@agenciafome.com.br&su=${subject}&body=${body}`;
+            window.open(gmailLink, '_blank');
+            closeContactModal();
+        }
+
+        function sendViaApp() {
+            const { subject, body } = getEmailContent();
             const mailtoLink = `mailto:contato@agenciafome.com.br?subject=${subject}&body=${body}`;
             window.open(mailtoLink, '_blank') || (window.location.href = mailtoLink);
+            closeContactModal();
         }
 
         // MODO ADMINISTRADOR (RECONSTRUÇÃO DO PDF PELO LINK DO EMAIL)
