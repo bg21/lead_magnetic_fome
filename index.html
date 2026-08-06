@@ -796,15 +796,8 @@
             const company = document.getElementById('leadCompany').value;
             const sector = document.getElementById('leadSector').value;
 
-            // --- AQUI ACONTECE A MÁGICA DE CAPTAÇÃO ---
-            /*
-            fetch("https://formsubmit.co/seuemail@agencia.com", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ Nome: name, Email: email, Empresa: company, Setor: sector })
-            });
-            */
-
+            // A captação do formulário inicial apenas cria a sessão agora.
+            // O envio de email foi movido para o botão final (contactAgency) para incluir todos os dados.
             sessionClient = {
                 name: company,
                 leadName: name,
@@ -834,9 +827,63 @@
 
         function contactAgency() {
             if(!sessionClient) return;
-            const subject = encodeURIComponent(`Agendar Sessão de Cura - ${sessionClient.name}`);
-            const body = encodeURIComponent(`Olá equipa FOME, \n\nUtilizei a calculadora e percebi que tenho um score crítico no setor ${sessionClient.sector}. Gostaria de agendar a sessão estratégica para discutir os vazamentos de equity.\n\nNome: ${sessionClient.leadName}\nEmpresa: ${sessionClient.name}`);
-            window.location.href = `mailto:hello@suaagencia.com?subject=${subject}&body=${body}`;
+
+            // Altera o texto do botão para mostrar que está carregando
+            const btn = document.querySelector("button[onclick='contactAgency()']");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "A processar envio...";
+            btn.disabled = true;
+
+            // Transforma as fendas (IDs) selecionadas em textos legíveis
+            const db = FRATURAS_DATABASE[sessionClient.sector];
+            let activeFracturesText = [];
+            [...db.op, ...db.sem, ...db.cult].forEach(item => {
+                if (sessionClient.checkedFractures.includes(item.id)) activeFracturesText.push(item.text);
+            });
+
+            const icsScore = document.getElementById("lblICSScore") ? document.getElementById("lblICSScore").textContent : "0";
+
+            // Envia o Lead Completo para o Web3Forms ANTES de abrir o e-mail
+            fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    access_key: "91ed69fb-f180-4da3-a768-02f08b53cf60",
+                    Nome: sessionClient.leadName, 
+                    Email: sessionClient.leadEmail, 
+                    Empresa: sessionClient.name, 
+                    Setor: sessionClient.sector,
+                    Faturamento_Anual: sessionClient.faturamento,
+                    CAC: sessionClient.cac,
+                    LTV: sessionClient.ltv,
+                    Churn_Anual: sessionClient.churn + "%",
+                    Discurso_Promessa: sessionClient.discurso || "Não preenchido",
+                    Pratica_Realidade: sessionClient.pratica || "Não preenchido",
+                    Fendas_Selecionadas: activeFracturesText.length > 0 ? activeFracturesText.join(" | ") : "Nenhuma selecionada",
+                    Score_ICS: icsScore
+                })
+            }).then(() => {
+                // Restaura o botão
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                // Mostra a notificação de sucesso na tela!
+                showNotice("Dossiê enviado com sucesso! A nossa equipa entrará em contato em breve.");
+
+                // Após disparar pro Web3Forms e dar o aviso, abre o mailto do cliente
+                setTimeout(() => {
+                    const subject = encodeURIComponent(`Agendar Sessão de Cura - ${sessionClient.name}`);
+                    const body = encodeURIComponent(`Olá equipa FOME, \n\nUtilizei a calculadora e percebi que tenho um score crítico (ICS: ${icsScore}) no setor ${sessionClient.sector}. Gostaria de agendar a sessão estratégica para discutir os vazamentos de equity.\n\nNome: ${sessionClient.leadName}\nEmpresa: ${sessionClient.name}`);
+                    window.location.href = `mailto:hello@suaagencia.com?subject=${subject}&body=${body}`;
+                }, 1500); // Aguarda um momento para o usuário ler o aviso
+            }).catch(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showNotice("Houve um erro no envio. Tente novamente.");
+            });
         }
 
         // CARREGAR E ATUALIZAR DADOS
