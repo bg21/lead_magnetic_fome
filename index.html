@@ -867,6 +867,27 @@
                 return;
             }
 
+            // Validação de Preenchimento Obrigatório
+            const fat = document.getElementById("inputFaturamento").value;
+            const cac = document.getElementById("inputCAC").value;
+            
+            if (!fat || parseFloat(fat) <= 0) {
+                showNotice("Por favor, preencha o campo 'Faturação Anual (Bruta)' na barra lateral.");
+                document.getElementById("inputFaturamento").focus();
+                return;
+            }
+
+            if (!cac || parseFloat(cac) <= 0) {
+                showNotice("Por favor, preencha o campo 'Orçamento Anual em Marketing' na barra lateral.");
+                document.getElementById("inputCAC").focus();
+                return;
+            }
+
+            if (!sessionClient.checkedFractures || sessionClient.checkedFractures.length === 0) {
+                showNotice("Seja honesto: assinale pelo menos um gargalo (Fratura) nas listas da barra lateral para gerarmos um diagnóstico preciso.");
+                return;
+            }
+
             // Altera o texto do botão para mostrar que está carregando
             const btn = document.querySelector("button[onclick='contactAgency()']");
             const originalText = btn.innerHTML;
@@ -889,9 +910,12 @@
             const totalSem = sessionClient.sem || 100;
             const totalCult = sessionClient.cult || 100;
             
-            const ics = (totalOp / db.op.length) * 0.40 + (totalSem / db.sem.length) * 0.30 + (totalCult / db.cult.length) * 0.30;
-            const gap = 100 - ics;
-            const mpi = (gap * 0.60) / 100;
+            const ics = (totalOp * 0.45) + (totalSem * 0.35) + (totalCult * 0.20);
+            
+            let mpi = 0;
+            if (ics >= 85) mpi = (100 - ics) * 0.0005;
+            else if (ics >= 60) mpi = 0.015 + (85 - ics) * 0.0015;
+            else mpi = 0.0525 + (60 - ics) * 0.0035;
 
             const icsScore = ics.toFixed(1);
             const calcOp = (mpi * 100).toFixed(1) + "%";
