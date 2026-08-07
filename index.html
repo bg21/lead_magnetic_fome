@@ -778,6 +778,24 @@
                 })
             }).catch(e => console.error("Erro no envio do email:", e));
 
+            // 3.5 Disparo Duplo para o Kanban do CRM (Webhook)
+            fetch("https://fome-crm.vercel.app/api/webhook", {
+                method: "POST",
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    name: sessionClient.leadName, 
+                    email: sessionClient.leadEmail, 
+                    company: sessionClient.name, 
+                    serviceType: sessionClient.sector,
+                    value: sessionClient.faturamento ? sessionClient.faturamento * 0.05 : 0, // Estima o valor da conta como 5% do faturamento
+                    source: "Calculadora FOME (Auto)",
+                    notes: `[AUTO-GERADO]\nScore ICS: ${icsScore}\nFaturamento Informado: R$ ${sessionClient.faturamento}\nCAC: R$ ${sessionClient.cac}\nLTV: R$ ${sessionClient.ltv}\nChurn: ${sessionClient.churn}%\n\nPromessa: ${sessionClient.discurso}\nPrática: ${sessionClient.pratica}`
+                })
+            }).catch(e => console.error("Erro no envio para o CRM:", e));
+
             // 4. Transição de Telas
             document.getElementById('leadGate').classList.add('hidden');
             document.getElementById('mainBody').classList.remove('overflow-y-auto');
