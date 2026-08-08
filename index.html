@@ -779,7 +779,7 @@
             }).catch(e => console.error("Erro no envio do email:", e));
 
             // 3.5 Disparo Duplo para o Kanban do CRM (Webhook)
-            fetch("https://fome-crm.vercel.app/api/webhook", {
+            fetch("https://fome-crm.vercel.app/api/webhook?v=2", {
                 method: "POST",
                 headers: { 
                     'Content-Type': 'application/json',
